@@ -2,11 +2,6 @@
   "name": "@david-bulte/locize-sync",
   "version": "1.0.0",
   "description": "cli tool to inspect your files for translation keys and sync them with locize",
-  "main": "src/index.js",
-  "bin": {
-    "@david-bulte/locize-sync": "bin/locize-sync",
-    "locize-sync": "bin/locize-sync"
-  },
   "publishConfig": {
     "access": "public"
   },
