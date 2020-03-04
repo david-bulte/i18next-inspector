@@ -17,6 +17,8 @@ const locizeSyncConfig = require('./locize-sync-config');
 const Spinner = CLI.Spinner;
 const files = require('./lib/files');
 const inspector = require('./lib/inspect');
+inspector.init(locizeSyncConfig);
+
 const inquirer = require('inquirer');
 
 const i18next = require('./lib/i18next');
