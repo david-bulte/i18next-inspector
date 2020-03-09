@@ -1,87 +1,40 @@
-// chalk — colorizes the output
-// clear — clears the terminal screen
-// clui — draws command-line tables, gauges and spinners
-// figlet — creates ASCII art from text
-// inquirer — creates interactive command-line user interface
-// minimist — parses argument options
-// configstore — easily loads and saves config without you having to think about where and how.
-const clear = require('clear');             // clear terminal
 const chalk = require('chalk');             // colorize input
+const clearTerminal = require('clear');             // clear terminal
+// clui — draws command-line tables, gauges and spinners
 const figlet = require('figlet');           // ascii art
 const flatten = require('flat');
-const Configstore = require('configstore'); // easily loads and saves config without you having to think about where and how
-const CLI = require('clui');
-const locizeSyncConfig = require('./locize-sync-config');
-
+const configstore = require('configstore'); // easily loads and saves config without you having to think about where and how
+const clui = require('clui');
+// minimist — parses argument options
 // const Octokit = require('@octokit/rest');
-const Spinner = CLI.Spinner;
-const files = require('./lib/files');
-const inspector = require('./lib/inspect');
-inspector.init(locizeSyncConfig);
-
+const Spinner = clui.Spinner;
 const inquirer = require('inquirer');
+// const conf = new configstore('ginit');
 
+const files = require('./lib/files');
+const logger = require('./lib/logger');
+const findKeys = require('./lib/find-keys');
 const i18next = require('./lib/i18next');
-i18next.init(locizeSyncConfig);
-
-const conf = new Configstore('ginit');
-
-clear();
-
-console.log("locizeSyncConfig", locizeSyncConfig);
-
-console.log(
-    chalk.yellow(
-        figlet.textSync('locize sync', {horizontalLayout: 'full'})
-    )
-);
-
-// if (files.directoryExists('.git')) {
-//     console.log(chalk.red('Already a Git repository!'));
-//     process.exit();
-// }
-
+const locizeSyncConfig = require('./locize-sync-config');
 
 const run = async () => {
 
-    console.log("process.argv", process.argv);
-    // pass saveMode to command line -> if not prompt first
-    // pass languages to command line -> if not prompt first
+    init('info');
+    welcome();
 
-    // find in files regex ]="xyz | i18next"
-    // check if these keys exist in locize
-    // ask to add key? [y | skip]
-    // ask for translation
-    // present summary
-    // ask to add summary [y | skip]
-
-
-    // const status = new Spinner('Authenticating you, please wait...');
-    // status.start();
-    //
-    // setTimeout(() => {
-    //     status.stop();
-    // }, 1000)
-
-    // const credentials = await inquirer.askGithubCredentials();
-    // console.log(credentials);
-
-    const keys = await inspector.findKeys(__dirname)
+    const keys = await findKeys.find(__dirname)
     const langs = await i18next.fetchAvailableLanguages();
     const resources = await getResources(langs);
     const actions = await collectNonTranslatedKeyActions(keys, langs, resources);
-    const done = await addMissingTranslations(actions);
-    console.debug('and we\'re done');
-    //
-    // i18next.updateRemoveTranslations().then(() => {
-    //     console.log("updated translations");
-    // });
+    await addMissingTranslations(actions);
+    logger.debug('and we\'re done');
 
 };
 
 async function getResources(langs) {
 
-    console.debug('getResources', langs);
+    const spinner = new clui.Spinner('Fetching resources...');
+    spinner.start();
 
     let resources = {};
     for (const lang of Object.keys(langs)) {
@@ -90,14 +43,15 @@ async function getResources(langs) {
         resources = {...resources, [lang]: _resourcesPerLang};
     }
 
-    console.debug('getResources - result', resources);
+    logger.debug('getResources - result', resources);
+    spinner.stop();
 
     return resources;
 }
 
 async function collectNonTranslatedKeyActions(keys, langs, resources) {
 
-    console.debug('collectNonTranslatedKeyActions')
+    logger.debug('collectNonTranslatedKeyActions')
 
     let actions = Object.keys(langs).reduce((res, key) => ({...res, [key]: {}}), {});
     for (const key of keys) {
@@ -115,26 +69,32 @@ async function collectNonTranslatedKeyActions(keys, langs, resources) {
         }
     }
 
-    console.debug('collectNonTranslatedKeyActions - result:', actions);
+    logger.debug('collectNonTranslatedKeyActions - result:', actions);
 
     return actions;
 }
 
 function handleNonTranslatedKey(key, lang) {
 
+    const question = {
+        name: key.replace(/\./g, '*'),
+        message: `How would you translate ${key} in ${lang.name}? (leave empty to skip)`,
+    };
+
+    logger.debug('question', question);
+
     return inquirer
         .prompt([
-            {
-                name: key.replace(/\./g, '*'),
-                message: `How would you translate ${key} in ${lang.name}? (leave empty to skip)`,
-            }
+            question
         ]);
 
 }
 
 async function addMissingTranslations(actions) {
 
-    console.debug('addMissingTranslations');
+    logger.debug('addMissingTranslations');
+    const spinner = new clui.Spinner('Saving translations...');
+    spinner.start();
 
     for (lang of Object.keys(actions)) {
         const _actions = actions[lang];
@@ -146,11 +106,57 @@ async function addMissingTranslations(actions) {
             await i18next.addMissingTranslations(lang, _actions);
         } catch (e) {
             const message = e.message || 'sth went wrong'
-            console.error(message);
+            logger.error(message);
         }
     }
+
+    spinner.stop();
 
 }
 
 run();
+
+function init(logLevel) {
+    logger.debugLevel = logLevel;
+    logger.debug('config', locizeSyncConfig);
+    findKeys.config = locizeSyncConfig.findKeys;
+    i18next.config = locizeSyncConfig.locize;
+}
+
+function welcome() {
+    clearTerminal();
+    console.log(
+        chalk.yellow(
+            figlet.textSync('locize sync', {horizontalLayout: 'full'})
+        )
+    );
+}
+
+// logger.debug("process.argv", process.argv);
+// pass saveMode to command line -> if not prompt first
+// pass languages to command line -> if not prompt first
+
+// find in files regex ]="xyz | i18next"
+// check if these keys exist in locize
+// ask to add key? [y | skip]
+// ask for translation
+// present summary
+// ask to add summary [y | skip]
+
+
+// const status = new Spinner('Authenticating you, please wait...');
+// status.start();
+//
+// setTimeout(() => {
+//     status.stop();
+// }, 1000)
+
+// const credentials = await inquirer.askGithubCredentials();
+// console.log(credentials);
+
+// if (files.directoryExists('.git')) {
+//     console.log(chalk.red('Already a Git repository!'));
+//     process.exit();
+// }
+
 
