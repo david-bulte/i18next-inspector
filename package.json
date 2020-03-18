@@ -25,7 +25,7 @@
     "find-in-files": "^0.5.0",
     "flat": "^5.0.0",
     "inquirer": "^7.0.5",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.2",
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
     "simple-git": "^1.131.0",
