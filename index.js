@@ -19,7 +19,7 @@ const locizeSyncConfig = require('./locize-sync-config');
 
 const run = async () => {
 
-    init('info');
+    init('debug');
     welcome();
 
     const keys = await findKeys.find(__dirname)
@@ -51,7 +51,7 @@ async function getResources(langs) {
 
 async function collectNonTranslatedKeyActions(keys, langs, resources) {
 
-    logger.debug('collectNonTranslatedKeyActions')
+    logger.debug('collectNonTranslatedKeyActions', langs)
 
     let actions = Object.keys(langs).reduce((res, key) => ({...res, [key]: {}}), {});
     for (const key of keys) {
