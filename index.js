@@ -10,6 +10,7 @@ const clui = require('clui');
 const Spinner = clui.Spinner;
 const inquirer = require('inquirer');
 // const conf = new configstore('ginit');
+const minimist = require('minimist');
 
 const files = require('./lib/files');
 const logger = require('./lib/logger');
@@ -19,7 +20,10 @@ const locizeSyncConfig = require('./locize-sync-config');
 
 const run = async () => {
 
-    init('debug');
+    var argv = minimist(process.argv.slice(2));
+    const debugLevel = argv['debugLevel'] || 'info';
+
+    init(debugLevel);
     welcome();
 
     const keys = await findKeys.find(__dirname)
