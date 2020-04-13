@@ -14,8 +14,8 @@ const merge = require('deepmerge')
 const logger = require('./lib/logger');
 const findKeys = require('./lib/find-keys');
 const i18next = require('./lib/i18next');
-const locizeSyncConfig = require('./locize-sync-config');
-const angularConfig = require('./lib/plugins/sinkit-angular');
+const i18nextInspectorConfig = require('./i18next-inspector-config');
+const angularConfig = require('./lib/plugins/i18next-inspector-config-angular');
 
 const Spinner = clui.Spinner;
 
@@ -40,12 +40,12 @@ const run = async () => {
 };
 
 function applyPlugins() {
-    const angular = locizeSyncConfig.framework === 'angular';
+    const angular = i18nextInspectorConfig.framework === 'angular';
     if (angular) {
-        return merge(angularConfig, locizeSyncConfig);
+        return merge(angularConfig, i18nextInspectorConfig);
     }
 
-    return locizeSyncConfig;
+    return i18nextInspectorConfig;
 }
 
 function getSrcDir(config) {
