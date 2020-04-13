@@ -129,9 +129,5 @@ function init(logLevel) {
 
 function welcome() {
     clearTerminal();
-    console.log(
-        chalk.yellow(
-            figlet.textSync('locize sync', {horizontalLayout: 'full'})
-        )
-    );
+    console.log(chalk.blue('here we go'));
 }
