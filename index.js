@@ -14,7 +14,6 @@ const merge = require('deepmerge')
 const logger = require('./lib/logger');
 const findKeys = require('./lib/find-keys');
 const i18next = require('./lib/i18next');
-const i18nextInspectorConfig = require('./i18next-inspector-config');
 const angularConfig = require('./lib/plugins/i18next-inspector-config-angular');
 
 const Spinner = clui.Spinner;
@@ -25,7 +24,7 @@ const run = async () => {
 
     var argv = minimist(process.argv.slice(2));
     const debugLevel = argv['debugLevel'] || 'info';
-    const config = applyPlugins();
+    const config = getConfig();
 
     init(debugLevel, config);
 
@@ -39,13 +38,16 @@ const run = async () => {
 
 };
 
-function applyPlugins() {
-    const angular = i18nextInspectorConfig.framework === 'angular';
+function getConfig() {
+
+    const localConfig = require(path.dirname(process.cwd()) + path.sep + path.basename(process.cwd()) + path.sep + 'i18next-inspector-config');
+
+    const angular = localConfig.framework === 'angular';
     if (angular) {
-        return merge(angularConfig, i18nextInspectorConfig);
+        return merge(angularConfig, localConfig);
     }
 
-    return i18nextInspectorConfig;
+    return localConfig;
 }
 
 function getSrcDir(config) {
