@@ -1,4 +1,8 @@
 {
+  "framework": "angular",
+  "src": {
+    "dir": "src/app"
+  },
   "locize": {
     "projectId": "--> YOUR PROJECT ID HERE <--",
     "apiKey": "--> YOUR API KEY HERE <--",
@@ -10,16 +14,6 @@
     ]
   },
   "findKeys": {
-    "framework": "angular",
-    "additionalRegexes": [
-      {
-        "regex": "/this.i18nPipe.transform\\('([a-zA-Z0-9]*[:]?[a-zA-Z0-9_.]*)'\\)/",
-        "fileExtensions": ".ts"
-      },
-      {
-        "regex": "/this.i18n.transform\\('([a-zA-Z0-9]*[:]?[a-zA-Z0-9_.]*)'\\)/",
-        "fileExtensions": [".ts"]
-      }
-    ]
+    "regexes": []
   }
 }

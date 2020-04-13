@@ -9,30 +9,58 @@ const configstore = require('configstore'); // easily loads and saves config wit
 const clui = require('clui');               // draws command-line tables, gauges and spinners
 const inquirer = require('inquirer');
 const minimist = require('minimist');       // parses argument options
+const merge = require('deepmerge')
 
 const logger = require('./lib/logger');
 const findKeys = require('./lib/find-keys');
 const i18next = require('./lib/i18next');
 const locizeSyncConfig = require('./locize-sync-config');
+const angularConfig = require('./lib/plugins/sinkit-angular');
 
 const Spinner = clui.Spinner;
 
 const run = async () => {
 
-    var argv = minimist(process.argv.slice(2));
-    const debugLevel = argv['debugLevel'] || 'info';
-
-    init(debugLevel);
     welcome();
 
-    const dirname = path.dirname(process.cwd()) + path.sep + path.basename(process.cwd());
+    var argv = minimist(process.argv.slice(2));
+    const debugLevel = argv['debugLevel'] || 'info';
+    const config = applyPlugins();
+
+    init(debugLevel, config);
+
+    const dirname = getSrcDir(config);
     const keys = await findKeys.find(dirname)
     const langs = await i18next.fetchAvailableLanguages();
     const resources = await getResources(langs);
     const actions = await collectNonTranslatedKeyActions(keys, langs, resources);
     await addMissingTranslations(actions);
-    logger.debug('and we\'re done');
+    console.log(chalk.blue('and we\'re done!'));
 
+};
+
+function applyPlugins() {
+    const angular = locizeSyncConfig.framework === 'angular';
+    if (angular) {
+        return merge(angularConfig, locizeSyncConfig);
+    }
+
+    return locizeSyncConfig;
+}
+
+function getSrcDir(config) {
+    const currentPath = path.dirname(process.cwd()) + path.sep + path.basename(process.cwd());
+    const configPath = config.src && config.src.dir;
+
+    if (!configPath) {
+        return currentPath;
+    }
+
+    if (path.isAbsolute(configPath)) {
+        return configPath;
+    } else {
+        return currentPath + path.sep + configPath;
+    }
 };
 
 async function getResources(langs) {
@@ -100,11 +128,14 @@ async function addMissingTranslations(actions) {
     const spinner = new clui.Spinner('Saving translations...');
     spinner.start();
 
+    const nothingToAdd = true;
     for (lang of Object.keys(actions)) {
         const _actions = actions[lang];
         if (Object.keys(_actions).length === 0) {
             continue;
         }
+
+        nothingToAdd = false;
 
         try {
             await i18next.addMissingTranslations(lang, _actions);
@@ -116,15 +147,18 @@ async function addMissingTranslations(actions) {
 
     spinner.stop();
 
+    if (nothingToAdd) {
+        console.log(chalk.blue('nothing left to translate - good job!'));
+    }
+
 }
 
 run();
 
-function init(logLevel) {
+function init(logLevel, config) {
     logger.debugLevel = logLevel;
-    logger.debug('config', locizeSyncConfig);
-    findKeys.config = locizeSyncConfig.findKeys;
-    i18next.config = locizeSyncConfig.locize;
+    findKeys.config = config.findKeys;
+    i18next.config = config.locize;
 }
 
 function welcome() {
