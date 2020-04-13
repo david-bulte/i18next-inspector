@@ -1,6 +1,6 @@
 {
   "name": "@david-bulte/i18next-inspector",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "cli tool to inspect your files for translation keys and sync them with locize",
   "publishConfig": {
     "access": "public"

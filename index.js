@@ -130,7 +130,7 @@ async function addMissingTranslations(actions) {
     const spinner = new clui.Spinner('Saving translations...');
     spinner.start();
 
-    const nothingToAdd = true;
+    let nothingToAdd = true;
     for (lang of Object.keys(actions)) {
         const _actions = actions[lang];
         if (Object.keys(_actions).length === 0) {
