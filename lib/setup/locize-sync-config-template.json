@@ -1,0 +1,25 @@
+{
+  "locize": {
+    "projectId": "--> YOUR PROJECT ID HERE <--",
+    "apiKey": "--> YOUR API KEY HERE <--",
+    "langs": [
+      "en"
+    ],
+    "bundles": [
+      "common"
+    ]
+  },
+  "findKeys": {
+    "framework": "angular",
+    "additionalRegexes": [
+      {
+        "regex": "/this.i18nPipe.transform\\('([a-zA-Z0-9]*[:]?[a-zA-Z0-9_.]*)'\\)/",
+        "fileExtensions": [".ts"]
+      },
+      {
+        "regex": "/this.i18n.transform\\('([a-zA-Z0-9]*[:]?[a-zA-Z0-9_.]*)'\\)/",
+        "fileExtensions": [".ts"]
+      }
+    ]
+  }
+}
