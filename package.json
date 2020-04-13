@@ -7,7 +7,7 @@
   },
   "scripts": {
     "start": "node index",
-    "postinstall": "npm run-script"
+    "postinstall": "npm run-script lib/setup/copy-files.js"
   },
   "keywords": [
     "locize-sync"
