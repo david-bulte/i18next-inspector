@@ -2,23 +2,20 @@
 
 const path = require('path');
 const chalk = require('chalk');             // colorize input
-const clearTerminal = require('clear');             // clear terminal
-// clui � draws command-line tables, gauges and spinners
+const clearTerminal = require('clear');     // clear terminal
 const figlet = require('figlet');           // ascii art
 const flatten = require('flat');
 const configstore = require('configstore'); // easily loads and saves config without you having to think about where and how
-const clui = require('clui');
-// minimist � parses argument options
-// const Octokit = require('@octokit/rest');
-const Spinner = clui.Spinner;
+const clui = require('clui');               // draws command-line tables, gauges and spinners
 const inquirer = require('inquirer');
-// const conf = new configstore('ginit');
-const minimist = require('minimist');
+const minimist = require('minimist');       // parses argument options
 
 const logger = require('./lib/logger');
 const findKeys = require('./lib/find-keys');
 const i18next = require('./lib/i18next');
 const locizeSyncConfig = require('./locize-sync-config');
+
+const Spinner = clui.Spinner;
 
 const run = async () => {
 
