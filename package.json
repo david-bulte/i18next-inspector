@@ -7,7 +7,10 @@
   },
   "scripts": {
     "start": "node index",
-    "postinstall": "npm run-script lib/setup/copy-files.js"
+    "postinstall": "node ./lib/setup/copy-files.js"
+  },
+  "bin": {
+    "locize-sync": "./index.js"
   },
   "keywords": [
     "locize-sync"

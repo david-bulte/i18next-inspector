@@ -14,7 +14,7 @@
     "additionalRegexes": [
       {
         "regex": "/this.i18nPipe.transform\\('([a-zA-Z0-9]*[:]?[a-zA-Z0-9_.]*)'\\)/",
-        "fileExtensions": [".ts"]
+        "fileExtensions": ".ts"
       },
       {
         "regex": "/this.i18n.transform\\('([a-zA-Z0-9]*[:]?[a-zA-Z0-9_.]*)'\\)/",

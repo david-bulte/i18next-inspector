@@ -1,18 +1,20 @@
+#!/usr/bin/env node
+
+const path = require('path');
 const chalk = require('chalk');             // colorize input
 const clearTerminal = require('clear');             // clear terminal
-// clui — draws command-line tables, gauges and spinners
+// clui ï¿½ draws command-line tables, gauges and spinners
 const figlet = require('figlet');           // ascii art
 const flatten = require('flat');
 const configstore = require('configstore'); // easily loads and saves config without you having to think about where and how
 const clui = require('clui');
-// minimist — parses argument options
+// minimist ï¿½ parses argument options
 // const Octokit = require('@octokit/rest');
 const Spinner = clui.Spinner;
 const inquirer = require('inquirer');
 // const conf = new configstore('ginit');
 const minimist = require('minimist');
 
-const files = require('./lib/files');
 const logger = require('./lib/logger');
 const findKeys = require('./lib/find-keys');
 const i18next = require('./lib/i18next');
@@ -26,7 +28,8 @@ const run = async () => {
     init(debugLevel);
     welcome();
 
-    const keys = await findKeys.find(__dirname)
+    const dirname = path.dirname(process.cwd()) + path.sep + path.basename(process.cwd());
+    const keys = await findKeys.find(dirname)
     const langs = await i18next.fetchAvailableLanguages();
     const resources = await getResources(langs);
     const actions = await collectNonTranslatedKeyActions(keys, langs, resources);
@@ -135,32 +138,3 @@ function welcome() {
         )
     );
 }
-
-// logger.debug("process.argv", process.argv);
-// pass saveMode to command line -> if not prompt first
-// pass languages to command line -> if not prompt first
-
-// find in files regex ]="xyz | i18next"
-// check if these keys exist in locize
-// ask to add key? [y | skip]
-// ask for translation
-// present summary
-// ask to add summary [y | skip]
-
-
-// const status = new Spinner('Authenticating you, please wait...');
-// status.start();
-//
-// setTimeout(() => {
-//     status.stop();
-// }, 1000)
-
-// const credentials = await inquirer.askGithubCredentials();
-// console.log(credentials);
-
-// if (files.directoryExists('.git')) {
-//     console.log(chalk.red('Already a Git repository!'));
-//     process.exit();
-// }
-
-
