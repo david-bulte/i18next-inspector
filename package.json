@@ -1,5 +1,5 @@
 {
-  "name": "@david-bulte/locize-sync",
+  "name": "@david-bulte/i18next-inspector",
   "version": "1.0.0",
   "description": "cli tool to inspect your files for translation keys and sync them with locize",
   "publishConfig": {
@@ -10,10 +10,10 @@
     "postinstall": "node ./lib/setup/copy-files.js"
   },
   "bin": {
-    "locize-sync": "./index.js"
+    "i18next-inspector": "./index.js"
   },
   "keywords": [
-    "locize-sync"
+    "i18next-inspector"
   ],
   "author": "david bulte",
   "license": "MIT",
