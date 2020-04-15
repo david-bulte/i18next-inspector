@@ -10,6 +10,9 @@ const clui = require('clui');               // draws command-line tables, gauges
 const inquirer = require('inquirer');
 const minimist = require('minimist');       // parses argument options
 const merge = require('deepmerge')
+const {convertArrayToCSV} = require('convert-array-to-csv');
+const util = require('util');
+const fs = require('fs');
 
 const logger = require('./lib/logger');
 const findKeys = require('./lib/find-keys');
@@ -25,6 +28,7 @@ const run = async () => {
     var argv = minimist(process.argv.slice(2));
     const debugLevel = argv['debugLevel'] || 'info';
     const config = getConfig();
+    const saveToLocize = argv['saveToLocize'] || config.saveToLocize;
 
     init(debugLevel, config);
 
@@ -33,7 +37,11 @@ const run = async () => {
     const langs = await i18next.fetchAvailableLanguages();
     const resources = await getResources(langs);
     const actions = await collectNonTranslatedKeyActions(keys, langs, resources);
-    await addMissingTranslations(actions);
+    if (saveToLocize) {
+        await saveMissingTranslations(actions);
+    } else {
+        await saveMissingTranslationsToFile(actions);
+    }
     console.log(chalk.blue('and we\'re done!'));
 
 };
@@ -124,10 +132,43 @@ function handleNonTranslatedKey(key, lang) {
 
 }
 
-async function addMissingTranslations(actions) {
+async function saveMissingTranslationsToFile(actions) {
 
-    logger.debug('addMissingTranslations');
-    const spinner = new clui.Spinner('Saving translations...');
+    logger.debug('saveMissingTranslationsToFile');
+    const spinner = new clui.Spinner('Saving translations to csv file...');
+    spinner.start();
+
+    let nothingToAdd = true;
+
+    const translationsPerKey = {};
+    Object.keys(actions).forEach(lang => {
+        const translations = actions[lang];
+        Object.keys(translations).forEach(key => {
+            let translation = translationsPerKey[key];
+            if (!translation) {
+                translation = {key, tags: '', context: '', namespace: 'common'};
+                translationsPerKey[key] = translation;
+            }
+            translation[lang] = translations[key];
+            nothingToAdd = false;
+        })
+    })
+
+    const csv = convertArrayToCSV(Object.values(translationsPerKey));
+    const writeFile = util.promisify(fs.writeFile);
+    await writeFile('i18next-missing-translations.csv', csv);
+
+    spinner.stop();
+
+    if (nothingToAdd) {
+        console.log(chalk.blue('nothing left to translate - good job!'));
+    }
+}
+
+async function saveMissingTranslations(actions) {
+
+    logger.debug('saveMissingTranslations');
+    const spinner = new clui.Spinner('Saving translations to locize...');
     spinner.start();
 
     let nothingToAdd = true;
