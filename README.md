@@ -11,7 +11,7 @@ To install this library, run:
 npm install @david-bulte/i18next-inspector --save-dev
 ```
 
-This will install the library, and create a templace config file (i18next-inspector-config.json) in your root folder. You need to specify some Locize authentication keys here.
+This will install the library, and create a template config file (i18next-inspector-config.json) in your root folder. You need to specify some Locize authentication keys here.
 
 ## Running the inspector
 
