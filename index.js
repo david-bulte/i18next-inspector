@@ -30,18 +30,39 @@ const run = async () => {
     const config = getConfig();
     const saveToLocize = argv['saveToLocize'] || config.saveToLocize;
 
-    init(debugLevel, config);
+    applyConfig(debugLevel, config);
 
     const dirname = getSrcDir(config);
-    const keys = await findKeys.find(dirname)
+    const keys = await findKeys.find(dirname);
     const langs = await i18next.fetchAvailableLanguages();
     const resources = await getResources(langs);
-    const actions = await collectNonTranslatedKeyActions(keys, langs, resources);
+
+    if (resources.hasMissing) {
+        const question = {
+            name: 'continue',
+            message: `Some resources could not be found - maybe locize hasn't been configured correctly. Do you want to continue anyway?`,
+            type: 'confirm',
+            default: false
+        };
+
+        const result = await inquirer
+            .prompt([
+                question
+            ]);
+
+        if (!result.continue) {
+            console.log('That was probably the right decision. Now check your i18next-inspector-config.json file for possible mistakes.');
+            return;
+        }
+    }
+
+    const actions = await collectNonTranslatedKeyActions(keys, langs, resources.resources);
     if (saveToLocize) {
         await saveMissingTranslations(actions);
     } else {
         await saveMissingTranslationsToFile(actions);
     }
+
     console.log(chalk.blue('and we\'re done!'));
 
 };
@@ -54,6 +75,7 @@ function getConfig() {
     if (angular) {
         return merge(angularConfig, localConfig);
     }
+    // nothing for react... yet
 
     return localConfig;
 }
@@ -63,32 +85,41 @@ function getSrcDir(config) {
     const configPath = config.src && config.src.dir;
 
     if (!configPath) {
+        logger.debug('No configPath. Returning currentPath', currentPath);
         return currentPath;
     }
 
     if (path.isAbsolute(configPath)) {
+        logger.debug('ConfigPath is absolute. Returning', configPath);
         return configPath;
     } else {
-        return currentPath + path.sep + configPath;
+        const srcDir = currentPath + path.sep + configPath;
+        logger.debug('ConfigPath is relative. Returning', srcDir);
+        return srcDir;
     }
 };
 
 async function getResources(langs) {
 
-    const spinner = new clui.Spinner('Fetching resources...');
+    const spinner = new clui.Spinner('Fetching resources from locize...');
     spinner.start();
 
     let resources = {};
+    let hasMissing = false;
     for (const lang of Object.keys(langs)) {
         let _resourcesPerLang = await i18next.fetchNamespaceResources(lang);
-        _resourcesPerLang = flatten(_resourcesPerLang);
-        resources = {...resources, [lang]: _resourcesPerLang};
+        if (_resourcesPerLang) {
+            _resourcesPerLang = flatten(_resourcesPerLang);
+            resources = {...resources, [lang]: _resourcesPerLang};
+        } else {
+            hasMissing = true;
+        }
     }
 
-    logger.debug('getResources - result', resources);
+    logger.debug('GetResources - result', resources);
     spinner.stop();
 
-    return resources;
+    return Promise.resolve({resources, hasMissing});
 }
 
 async function collectNonTranslatedKeyActions(keys, langs, resources) {
@@ -98,7 +129,7 @@ async function collectNonTranslatedKeyActions(keys, langs, resources) {
     let actions = Object.keys(langs).reduce((res, key) => ({...res, [key]: {}}), {});
     for (const key of keys) {
         for (const lang of Object.keys(langs)) {
-            const translation = resources[lang][key];
+            const translation = resources[lang] && resources[lang][key];
             if (!translation) {
                 const answer = await handleNonTranslatedKey(key, langs[lang]);
                 const entry = Object.entries(answer)[0];
@@ -198,7 +229,7 @@ async function saveMissingTranslations(actions) {
 
 run();
 
-function init(logLevel, config) {
+function applyConfig(logLevel, config) {
     logger.debugLevel = logLevel;
     findKeys.config = config.findKeys;
     i18next.config = config.locize;
